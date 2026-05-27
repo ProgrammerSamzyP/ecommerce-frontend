@@ -5,16 +5,25 @@ import { useNavigate, Link } from 'react-router-dom';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);   // ✅ processing lock
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent double‑click
+    if (loading) return;
+    setLoading(true);
+
     try {
       await login(email, password);
       navigate('/products');
     } catch {
       alert('Login failed – check credentials');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,7 +41,9 @@ export default function Login() {
           <input type="password" className="form-control" value={password}
             onChange={e => setPassword(e.target.value)} required />
         </div>
-        <button type="submit" className="btn btn-primary w-100">Log in</button>
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+          {loading ? 'Logging in…' : 'Log in'}
+        </button>
       </form>
       <p className="mt-3 text-center">
         <Link to="/forgot-password">Forgot Password?</Link>

@@ -6,17 +6,26 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);   // ✅ processing lock
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent double‑click
+    if (loading) return;
+    setLoading(true);
+
     try {
       await register(email, password, name);
       alert('Registration successful – please log in');
       navigate('/login');
-    } catch {
-      alert('Registration failed');
+    } catch (err) {
+      alert('Registration failed – email may already be taken');
+    } finally {
+      setLoading(false);   // re‑enable only after the request finishes
     }
   };
 
@@ -26,17 +35,22 @@ export default function Register() {
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label">Name</label>
-          <input type="text" className="form-control" value={name} onChange={e => setName(e.target.value)} required />
+          <input type="text" className="form-control" value={name}
+            onChange={e => setName(e.target.value)} required />
         </div>
         <div className="mb-3">
           <label className="form-label">Email</label>
-          <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input type="email" className="form-control" value={email}
+            onChange={e => setEmail(e.target.value)} required />
         </div>
         <div className="mb-3">
           <label className="form-label">Password</label>
-          <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required />
+          <input type="password" className="form-control" value={password}
+            onChange={e => setPassword(e.target.value)} required />
         </div>
-        <button type="submit" className="btn btn-success w-100">Sign up</button>
+        <button type="submit" className="btn btn-success w-100" disabled={loading}>
+          {loading ? 'Registering…' : 'Sign up'}
+        </button>
       </form>
       <p className="mt-3 text-center">
         Already have an account? <Link to="/login">Login</Link>
