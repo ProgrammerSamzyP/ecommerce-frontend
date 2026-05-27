@@ -27,11 +27,11 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const register = async (email, password, name) => {
-    await axios.post('http://localhost:8080/api/auth/register', { email, password, name });
+    await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { email, password, name });
   };
 
   const login = async (email, password) => {
-    const res = await axios.post('http://localhost:8080/api/auth/login', { email, password });
+    const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { email, password });
     setToken(res.data.token);
   };
 

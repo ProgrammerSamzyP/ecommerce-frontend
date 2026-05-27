@@ -16,7 +16,7 @@ export function WishlistProvider({ children }) {
     }
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/wishlist');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/wishlist`);
       // res.data is an array of Product objects – extract IDs
       const ids = new Set(res.data.map(p => p.id));
       setWishlistIds(ids);
@@ -35,7 +35,7 @@ export function WishlistProvider({ children }) {
   const addToWishlist = async (productId) => {
     if (!token) return;
     try {
-      await axios.post(`http://localhost:8080/api/wishlist/${productId}`);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/wishlist/${productId}`);
       setWishlistIds(prev => new Set(prev).add(productId));
     } catch (err) {
       console.error(err);
@@ -45,7 +45,7 @@ export function WishlistProvider({ children }) {
   const removeFromWishlist = async (productId) => {
     if (!token) return;
     try {
-      await axios.delete(`http://localhost:8080/api/wishlist/${productId}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/wishlist/${productId}`);
       setWishlistIds(prev => {
         const next = new Set(prev);
         next.delete(productId);
