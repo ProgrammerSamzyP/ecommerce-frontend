@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const fetchOrders = () => {
+  const fetchOrders = useCallback(() => {
     const url = showDeleted
       ? `${process.env.REACT_APP_API_URL}/api/orders/admin/deleted`
       : `${process.env.REACT_APP_API_URL}/api/orders/admin`;
     axios.get(url)
       .then(res => setOrders(res.data))
       .catch(err => console.error(err));
-  };
+  }, [showDeleted]);
 
   useEffect(() => {
     fetchOrders();
-  }, [showDeleted]);
+  }, [fetchOrders]);
 
   const updateStatus = async (orderId, newStatus) => {
     try {

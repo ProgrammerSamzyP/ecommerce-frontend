@@ -1,26 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
-  // Add form
+  const fetchProducts = useCallback(() => {
+    const url = showDeleted
+      ? `${process.env.REACT_APP_API_URL}/api/admin/products/deleted`
+      : `${process.env.REACT_APP_API_URL}/api/products`;
+    axios.get(url)
+      .then(res => setProducts(res.data))
+      .catch(err => console.error(err));
+  }, [showDeleted]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Add form states
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
     imageUrl: '',
     stock: ''
   });
-  const [imageFiles, setImageFiles] = useState([]);   // multiple files
+  const [imageFiles, setImageFiles] = useState([]);
 
-  // Edit form
+  // Edit form states
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
     name: '',
     price: '',
     imageUrl: '',
-    additionalImages: [],   // list of image URLs
+    additionalImages: [],
     stock: ''
   });
 
@@ -30,24 +43,7 @@ export default function AdminProducts() {
     return url;
   };
 
-  const fetchProducts = () => {
-    const url = showDeleted
-      ? `${process.env.REACT_APP_API_URL}/api/admin/products/deleted`
-      : `${process.env.REACT_APP_API_URL}/api/products`;
-    axios.get(url)
-      .then(res => setProducts(res.data))
-      .catch(err => console.error(err));
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [showDeleted]);
-
-  // Upload multiple files and return their URLs
   const handleImageUpload = async (files) => {
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));   // if backend supports multiple, otherwise loop
-    // Our backend upload-image expects one file at a time – we'll upload sequentially
     const urls = [];
     for (const file of files) {
       const fd = new FormData();
@@ -70,14 +66,12 @@ export default function AdminProducts() {
     try {
       let imageUrl = newProduct.imageUrl;
       let additionalImages = [];
-
       if (imageFiles.length > 0) {
         const uploadedUrls = await handleImageUpload(imageFiles);
-        if (!uploadedUrls) return;  // error already alerted
-        imageUrl = uploadedUrls[0];                      // main image
-        additionalImages = uploadedUrls.slice(1);        // rest are additional
+        if (!uploadedUrls) return;
+        imageUrl = uploadedUrls[0];
+        additionalImages = uploadedUrls.slice(1);
       }
-
       await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/products`, {
         name: newProduct.name,
         price: parseFloat(newProduct.price),
@@ -85,7 +79,6 @@ export default function AdminProducts() {
         additionalImages: additionalImages,
         stock: parseInt(newProduct.stock) || 0
       });
-
       setNewProduct({ name: '', price: '', imageUrl: '', stock: '' });
       setImageFiles([]);
       fetchProducts();
@@ -159,7 +152,6 @@ export default function AdminProducts() {
     <div className="container">
       <h2>Admin Product Management</h2>
 
-      {/* Add New Product */}
       <form onSubmit={handleAdd} className="mb-4 p-3 border rounded">
         <h5>Add New Product</h5>
         <div className="row">
@@ -187,12 +179,10 @@ export default function AdminProducts() {
         <button type="submit" className="btn btn-success">Add Product</button>
       </form>
 
-      {/* Toggle deleted products view */}
       <button onClick={() => setShowDeleted(!showDeleted)} className="btn btn-outline-secondary mb-3">
         {showDeleted ? 'Show Active Products' : 'Show Deleted Products'}
       </button>
 
-      {/* Product List */}
       <div className="list-group">
         {products.map(product => (
           <div key={product.id} className="list-group-item d-flex justify-content-between align-items-center">
